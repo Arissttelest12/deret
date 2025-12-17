@@ -199,14 +199,7 @@
         position: relative;
     }
     
-    .slot.fixed::before {
-        content: '🔒';
-        position: absolute;
-        top: 5px;
-        right: 8px;
-        font-size: 12px;
-        opacity: 0.8;
-    }
+    /* Removed lock icon on fixed slots to match design preference */
     
     .slot.correct { 
         background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
@@ -861,6 +854,7 @@ class ArithmeticSequenceGame {
 
     // Toggle extreme mode on/off
     toggleExtremeMode() {
+        // Toggle mode
         this.extremeMode = !this.extremeMode;
         const btn = document.getElementById('extremeToggle');
         if (this.extremeMode) {
@@ -869,11 +863,28 @@ class ArithmeticSequenceGame {
         } else {
             btn.classList.remove('muted');
             btn.textContent = '⚡';
+
+            // We're switching back to normal — reset transient state to ensure slots re-render correctly
+            this.filledAnswers = {};
+            this.dragged = null;
+            this.touchDragging = null;
+            if (this.touchClone) {
+                try { this.touchClone.remove(); } catch (e) {}
+                this.touchClone = null;
+            }
+            // remove any success animation overlay that might block UI
+            document.querySelectorAll('.success-animation').forEach(el => el.remove());
+            // remove extreme label if present
+            const lbl = document.getElementById('extremeLabel'); if (lbl) lbl.remove();
+            // clear containers so setupLevel can repopulate cleanly
+            const slotsDiv = document.getElementById('slots'); if (slotsDiv) slotsDiv.innerHTML = '';
+            const choicesDiv = document.getElementById('choices'); if (choicesDiv) choicesDiv.innerHTML = '';
         }
+
         this.setupLevel();
         this.render();
 
-        // Load highscore from cache
+        // Load highscore from cache and update UI
         this.loadHighScore();
         this.updateUI();
     }

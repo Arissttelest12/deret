@@ -157,8 +157,6 @@
         transition:all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         position: relative;
         overflow: hidden;
-        touch-action: none;
-        -webkit-user-drag: none;
         will-change: transform;
     }
     
@@ -354,6 +352,7 @@
         .hint-section { font-size: 14px; }
         .container { padding: 18px; gap: 10px; }
         .box, .slot { width: 64px; height: 64px; font-size: 20px; }
+        .box, .slot { touch-action: none; -webkit-user-drag: none; }
         .audio-btn { width: 44px; height: 44px; }
         .progress-bar { height: 6px; }
     }
@@ -864,7 +863,7 @@ class ArithmeticSequenceGame {
             btn.classList.remove('muted');
             btn.textContent = '⚡';
 
-            // We're switching back to normal — reset transient state to ensure slots re-render correctly
+            // We're switching back to normal — reset transient and extreme-specific state
             this.filledAnswers = {};
             this.dragged = null;
             this.touchDragging = null;
@@ -876,9 +875,20 @@ class ArithmeticSequenceGame {
             document.querySelectorAll('.success-animation').forEach(el => el.remove());
             // remove extreme label if present
             const lbl = document.getElementById('extremeLabel'); if (lbl) lbl.remove();
+            // Reset extreme-specific vars
+            this.extremeStartNumber = null;
+            this.missingIndex = null;
+            this.windowIndexes = [];
+            // Reset sequence state to defaults for normal mode
+            this.deret = [];
+            this.emptyPositions = [];
+            this.totalSlots = 10;
+            this.emptySlots = 3;
             // clear containers so setupLevel can repopulate cleanly
             const slotsDiv = document.getElementById('slots'); if (slotsDiv) slotsDiv.innerHTML = '';
             const choicesDiv = document.getElementById('choices'); if (choicesDiv) choicesDiv.innerHTML = '';
+            // reset progress bar
+            try { document.getElementById('progressFill').style.width = '0%'; } catch (e) {}
         }
 
         this.setupLevel();

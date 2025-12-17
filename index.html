@@ -381,8 +381,8 @@
 
 <div class="game-container">
     <div class="title-section">
-        <h1 class="game-title">🎯 Game Deret Aritmatika</h1>
-        <p class="subtitle">Lengkapi deret dengan menyeret angka ke tempat yang benar!</p>
+        <h1 class="game-title">🎯 Game Barisan Aritmatika</h1>
+        <p class="subtitle">Lengkapi barisan bilangan dengan menyeret angka ke tempat yang benar!</p>
     </div>
     
     <div class="info-bar">
@@ -390,6 +390,7 @@
         <div class="level-info">
             Level <span id="currentLevel">1</span>
         </div>
+        <div class="highscore" id="highScore" style="color:white;font-weight:600;">Highscore: 0</div>
         <div class="audio-controls">
             <button class="audio-btn" id="bgmToggle" title="Toggle Music">🎵</button>
             <button class="audio-btn" id="sfxToggle" title="Toggle Sound Effects">🔊</button>
@@ -425,6 +426,7 @@ class ArithmeticSequenceGame {
         this.emptySlots = 3;
         this.audioEnabled = true;
         this.extremeMode = false;
+        this.highScore = 0;
         this.bigTotalSlots = 100; // used in extreme mode
         this.missingIndex = null; // 1-based index in big sequence
         this.windowIndexes = []; // indexes to render in extreme mode (1-based)
@@ -870,6 +872,10 @@ class ArithmeticSequenceGame {
         }
         this.setupLevel();
         this.render();
+
+        // Load highscore from cache
+        this.loadHighScore();
+        this.updateUI();
     }
     
     // Pastikan semua angka yang dibutuhkan ada di pilihan
@@ -1050,6 +1056,18 @@ class ArithmeticSequenceGame {
             confirmButtonText: `Lanjut Level ${this.level + 1}`
         }).then((result) => {
             if (result.isConfirmed) {
+                // update highscore for the new level (which will be level+1 after nextLevel())
+                const potential = this.level + 1;
+                if (potential > this.highScore) {
+                    this.saveHighScore(potential);
+                    // show a quick congrats for new highscore
+                    this.showCustomAlert({
+                        title: 'New Highscore! 🏆',
+                        text: `Highscore kamu sekarang Level ${this.highScore}`,
+                        icon: 'success',
+                        confirmButtonColor: '#38ef7d'
+                    });
+                }
                 this.nextLevel();
             }
         });
@@ -1067,7 +1085,9 @@ class ArithmeticSequenceGame {
     gameOver() {
         this.playAudio('gameOver');
         this.audioFiles.bgm.pause();
-        
+        // Clear transient cache so refresh won't resume in-progress state
+        this.clearCache();
+
         this.showCustomAlert({
             title: "Game Over! 💀",
             text: `Kamu mencapai level ${this.level}. Coba lagi?`,
@@ -1094,6 +1114,33 @@ class ArithmeticSequenceGame {
             hearts += `<span class="heart">${i <= this.nyawa ? "❤️" : "🖤"}</span>`;
         }
         document.getElementById("nyawa").innerHTML = hearts;
+        const hsEl = document.getElementById('highScore');
+        if (hsEl) hsEl.textContent = `Highscore: ${this.highScore}`;
+    }
+
+    // Highscore and cache helpers
+    loadHighScore() {
+        try {
+            const v = localStorage.getItem('deret_highscore');
+            this.highScore = v ? parseInt(v, 10) : 0;
+        } catch (e) {
+            this.highScore = 0;
+        }
+    }
+
+    saveHighScore(level) {
+        try {
+            this.highScore = Math.max(this.highScore || 0, level);
+            localStorage.setItem('deret_highscore', String(this.highScore));
+        } catch (e) {}
+    }
+
+    // Clear transient cache (do not remove highscore)
+    clearCache() {
+        try {
+            localStorage.removeItem('deret_inprogress');
+            localStorage.removeItem('deret_resume');
+        } catch (e) {}
     }
     
     // Create floating particles

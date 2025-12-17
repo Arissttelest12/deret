@@ -1,0 +1,1132 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<title>Game Deret Aritmatika - Enhanced Audio</title>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap');
+    
+    body { 
+        font-family: 'Poppins', sans-serif; 
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        margin: 0;
+        padding: 20px;
+        text-align:center; 
+        overflow-x: hidden;
+    }
+    
+    .game-container {
+        max-width: 1000px;
+        margin: 0 auto;
+        position: relative;
+    }
+    
+    .title-section {
+        margin-bottom: 30px;
+    }
+    
+    .game-title {
+        color: white;
+        font-size: 36px;
+        font-weight: 700;
+        text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        margin-bottom: 10px;
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    
+    .subtitle {
+        color: rgba(255,255,255,0.9);
+        font-size: 18px;
+        font-weight: 400;
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    
+    .info-bar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin: 20px 0;
+        padding: 15px 30px;
+        background: rgba(255,255,255,0.1);
+        border-radius: 25px;
+        backdrop-filter: blur(10px);
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    
+    .nyawa { 
+        font-size: 28px; 
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    
+    .heart { 
+        margin: 0 3px; 
+        font-size: 35px;
+        animation: heartbeat 1.5s ease-in-out infinite;
+        cursor: pointer;
+        transition: transform 0.2s;
+    }
+    
+    .heart:hover {
+        transform: scale(1.2);
+    }
+    
+    @keyframes heartbeat {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.1); }
+    }
+    
+    .level-info {
+        color: white;
+        font-weight: 600;
+        font-size: 18px;
+    }
+    
+    .audio-controls {
+        display: flex;
+        gap: 15px;
+        align-items: center;
+    }
+    
+    .audio-btn {
+        background: rgba(255,255,255,0.2);
+        border: none;
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        color: white;
+        font-size: 18px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        backdrop-filter: blur(10px);
+    }
+    
+    .audio-btn:hover {
+        background: rgba(255,255,255,0.3);
+        transform: scale(1.1);
+    }
+    
+    .audio-btn.muted {
+        background: rgba(255,107,107,0.3);
+        color: #ff6b6b;
+    }
+    
+    .hint-section {
+        margin: 20px 0;
+        padding: 15px;
+        background: rgba(255,255,255,0.15);
+        border-radius: 20px;
+        backdrop-filter: blur(10px);
+        color: white;
+        font-size: 16px;
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    
+    .container { 
+        display:flex; 
+        justify-content:center; 
+        gap:15px; 
+        flex-wrap:wrap; 
+        margin:30px 0;
+        padding: 25px;
+        background: rgba(255,255,255,0.1);
+        border-radius: 20px;
+        backdrop-filter: blur(10px);
+        box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+    }
+    
+    .box, .slot {
+        width:85px; 
+        height:85px; 
+        border-radius:15px; 
+        display:flex; 
+        justify-content:center; 
+        align-items:center;
+        font-size:26px; 
+        font-weight: 600;
+        transition:all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .box { 
+        background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 50%, #fecfef 100%);
+        color: #333; 
+        cursor:grab; 
+        box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        border: 3px solid rgba(255,255,255,0.3);
+        opacity: 0;
+        transform: scale(0.8) translateY(20px);
+    }
+    
+    .box:hover { 
+        transform:scale(1.1) rotate(5deg); 
+        box-shadow: 0 12px 35px rgba(0,0,0,0.2);
+        background: linear-gradient(135deg, #fecfef 0%, #ff9a9e 100%);
+    }
+    
+    .box:active {
+        transform: scale(0.95);
+    }
+    
+    .slot {
+        background: rgba(255,255,255,0.2);
+        border:3px dashed rgba(255,255,255,0.6); 
+        color:white;
+        opacity: 0;
+        transform: scale(0.8) translateY(20px);
+    }
+    
+    .slot.fixed { 
+        background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        color: white; 
+        border:none; 
+        cursor:default; 
+        box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        position: relative;
+    }
+    
+    .slot.fixed::before {
+        content: '🔒';
+        position: absolute;
+        top: 5px;
+        right: 8px;
+        font-size: 12px;
+        opacity: 0.8;
+    }
+    
+    .slot.correct { 
+        background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+        color:white; 
+        border:none; 
+        animation:pop .5s ease, successPulse 0.6s ease;
+        box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+    }
+    
+    .slot.empty {
+        background: rgba(255,255,255,0.1);
+        border:3px dashed rgba(255,255,255,0.8);
+        color: rgba(255,255,255,0.7);
+        font-size: 20px;
+    }
+    
+    .slot.drag-over {
+        background: rgba(255,255,255,0.4);
+        border-color: white;
+        transform: scale(1.05);
+    }
+    
+    @keyframes pop { 
+        0% { transform:scale(.8) rotate(-10deg); }
+        50% { transform:scale(1.2) rotate(5deg); }
+        100% { transform:scale(1) rotate(0deg); }
+    }
+    
+    @keyframes successPulse {
+        0%, 100% { box-shadow: 0 0 0 0 rgba(56, 239, 125, 0.7); }
+        50% { box-shadow: 0 0 0 20px rgba(56, 239, 125, 0); }
+    }
+    
+    .floating-particles {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+        z-index: -1;
+    }
+    
+    .particle {
+        position: absolute;
+        background: rgba(255,255,255,0.1);
+        border-radius: 50%;
+        animation: float 6s ease-in-out infinite;
+    }
+    
+    @keyframes float {
+        0%, 100% { transform: translateY(0px) rotate(0deg); }
+        50% { transform: translateY(-20px) rotate(180deg); }
+    }
+    
+    .success-animation {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        font-size: 100px;
+        z-index: 1000;
+        pointer-events: none;
+    }
+    
+    .progress-bar {
+        width: 100%;
+        height: 8px;
+        background: rgba(255,255,255,0.2);
+        border-radius: 4px;
+        margin: 10px 0;
+        overflow: hidden;
+    }
+    
+    .progress-fill {
+        height: 100%;
+        background: linear-gradient(90deg, #38ef7d, #11998e);
+        border-radius: 4px;
+        transition: width 0.5s ease;
+        width: 0%;
+    }
+    
+    /* Custom SweetAlert2 Theme */
+    .swal2-popup {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+        border-radius: 20px !important;
+        box-shadow: 0 8px 32px rgba(0,0,0,0.3) !important;
+        backdrop-filter: blur(10px) !important;
+        border: 1px solid rgba(255,255,255,0.2) !important;
+    }
+    
+    .swal2-title {
+        color: white !important;
+        font-family: 'Poppins', sans-serif !important;
+        font-weight: 600 !important;
+        text-shadow: 2px 2px 4px rgba(0,0,0,0.3) !important;
+    }
+    
+    .swal2-html-container {
+        color: rgba(255,255,255,0.9) !important;
+        font-family: 'Poppins', sans-serif !important;
+        font-size: 16px !important;
+    }
+    
+    .swal2-confirm {
+        background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%) !important;
+        border: none !important;
+        border-radius: 25px !important;
+        color: white !important;
+        font-family: 'Poppins', sans-serif !important;
+        font-weight: 600 !important;
+        padding: 12px 30px !important;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.2) !important;
+        transition: all 0.3s ease !important;
+    }
+    
+    .swal2-confirm:hover {
+        transform: translateY(-2px) !important;
+        box-shadow: 0 6px 20px rgba(0,0,0,0.3) !important;
+    }
+    
+    .swal2-icon {
+        border: none !important;
+    }
+    
+    .swal2-success-circular-line-left,
+    .swal2-success-circular-line-right,
+    .swal2-success-fix {
+        background-color: transparent !important;
+    }
+    
+    .swal2-success-line-tip,
+    .swal2-success-line-long {
+        background-color: #38ef7d !important;
+    }
+    
+    .swal2-error {
+        border-color: #ff6b6b !important;
+    }
+    
+    .swal2-error-line-tip,
+    .swal2-error-line-long {
+        background-color: #ff6b6b !important;
+    }
+</style>
+</head>
+<body>
+
+<div class="floating-particles" id="particles"></div>
+
+<div class="game-container">
+    <div class="title-section">
+        <h1 class="game-title">🎯 Game Deret Aritmatika</h1>
+        <p class="subtitle">Lengkapi deret dengan menyeret angka ke tempat yang benar!</p>
+    </div>
+    
+    <div class="info-bar">
+        <div class="nyawa" id="nyawa"></div>
+        <div class="level-info">
+            Level <span id="currentLevel">1</span>
+        </div>
+        <div class="audio-controls">
+            <button class="audio-btn" id="bgmToggle" title="Toggle Music">🎵</button>
+            <button class="audio-btn" id="sfxToggle" title="Toggle Sound Effects">🔊</button>
+            <button class="audio-btn" id="extremeToggle" title="Mode Ekstrim">⚡</button>
+        </div>
+    </div>
+    
+    <div class="hint-section" id="hintSection">
+        <div>🔍 Petunjuk: Perhatikan pola penambahan angka!</div>
+        <div class="progress-bar">
+            <div class="progress-fill" id="progressFill"></div>
+        </div>
+    </div>
+    
+    <div class="container" id="slots"></div>
+    
+    <div class="container" id="choices"></div>
+</div>
+
+<script>
+// =====================================================
+// ENHANCED ARITHMETIC SEQUENCE GAME WITH AUDIO
+// =====================================================
+
+class ArithmeticSequenceGame {
+    constructor() {
+        this.level = 1;
+        this.nyawa = 5;
+        this.deret = [];
+        this.emptyPositions = [];
+        this.filledAnswers = {};
+        this.totalSlots = 10;
+        this.emptySlots = 3;
+        this.audioEnabled = true;
+        this.extremeMode = false;
+        this.bigTotalSlots = 100; // used in extreme mode
+        this.missingIndex = null; // 1-based index in big sequence
+        this.windowIndexes = []; // indexes to render in extreme mode (1-based)
+        this.extremeStartNumber = null; // start number for big sequence
+        this.bgmEnabled = true;
+        
+        // Audio elements
+        this.audioFiles = {
+            bgm: null,
+            correct: null,
+            wrong: null,
+            levelComplete: null,
+            gameOver: null,
+            dragDrop: null
+        };
+        
+        // Level configuration
+        this.levelConfig = {
+            1: { beda: 2, startRange: [1, 10] },
+            2: { beda: 3, startRange: [1, 15] },
+            3: { beda: 4, startRange: [1, 20] },
+            4: { beda: 5, startRange: [5, 25] },
+            5: { beda: 6, startRange: [5, 30] },
+            6: { beda: 7, startRange: [10, 35] },
+            7: { beda: 8, startRange: [10, 40] },
+            8: { beda: 9, startRange: [15, 45] },
+            9: { beda: 10, startRange: [15, 50] },
+            10: { beda: 11, startRange: [20, 55] }
+        };
+        
+        this.initAudio();
+        this.init();
+    }
+    
+    // Initialize audio files
+    initAudio() {
+        try {
+            // Use provided bgm filename `bgm.mp3` in the resources folder
+            this.audioFiles.bgm = new Audio('resources/bgm.mp3');
+            this.audioFiles.correct = new Audio('resources/correct_answer.mp3');
+            this.audioFiles.wrong = new Audio('resources/wrong_answer.mp3');
+            this.audioFiles.levelComplete = new Audio('resources/level_complete.mp3');
+            this.audioFiles.gameOver = new Audio('resources/game_over.mp3');
+            this.audioFiles.dragDrop = new Audio('resources/drag_drop.mp3');
+            
+            // Configure BGM
+            this.audioFiles.bgm.loop = true;
+            this.audioFiles.bgm.volume = 0.3;
+            
+            // Configure sound effects
+            Object.keys(this.audioFiles).forEach(key => {
+                if (key !== 'bgm' && this.audioFiles[key]) {
+                    this.audioFiles[key].volume = 0.5;
+                }
+            });
+        } catch (error) {
+            console.warn('Audio initialization failed:', error);
+            this.audioEnabled = false;
+        }
+    }
+    
+    // Play audio with error handling
+    playAudio(type) {
+        if (!this.audioEnabled || !this.audioFiles[type]) return;
+        
+        try {
+            this.audioFiles[type].currentTime = 0;
+            this.audioFiles[type].play().catch(e => {
+                console.warn(`Could not play ${type} audio:`, e);
+            });
+        } catch (error) {
+            console.warn(`Error playing ${type} audio:`, error);
+        }
+    }
+    
+    // Toggle background music
+    toggleBGM() {
+        this.bgmEnabled = !this.bgmEnabled;
+        const btn = document.getElementById('bgmToggle');
+        
+        if (this.bgmEnabled) {
+            // Unmute and play immediately (this is a direct user gesture)
+            if (this.audioFiles.bgm) {
+                try {
+                    this.audioFiles.bgm.muted = false;
+                    this.audioFiles.bgm.volume = 0.3;
+                    this.audioFiles.bgm.play().catch(() => {});
+                } catch (e) { }
+            }
+            btn.classList.remove('muted');
+            btn.textContent = '🎵';
+        } else {
+            this.audioFiles.bgm.pause();
+            btn.classList.add('muted');
+            btn.textContent = '🔇';
+        }
+    }
+
+    // Try autoplaying BGM in a way browsers allow: play muted on load, then unmute on first user interaction
+    setupAutoplayBGM() {
+        if (!this.audioFiles.bgm) return;
+
+        const bgm = this.audioFiles.bgm;
+
+        // If already allowed to autoplay normally, try to play
+        bgm.muted = true; // start muted to increase autoplay chances
+        bgm.volume = 0.0;
+        bgm.loop = true;
+
+        // Try playing muted immediately
+        bgm.play().catch(() => {
+            // ignore autoplay rejection; we'll wait for user gesture
+        }).finally(() => {
+            // add listener to unmute on first user gesture
+            const unlock = () => {
+                try {
+                    if (this.bgmEnabled) {
+                        bgm.muted = false;
+                        bgm.volume = 0.3;
+                    }
+                    // remove event listeners after unlocking
+                    window.removeEventListener('pointerdown', unlock);
+                    window.removeEventListener('keydown', unlock);
+                    window.removeEventListener('touchstart', unlock);
+                } catch (e) {}
+            };
+
+            window.addEventListener('pointerdown', unlock, { once: true });
+            window.addEventListener('keydown', unlock, { once: true });
+            window.addEventListener('touchstart', unlock, { once: true });
+        });
+    }
+    
+    // Toggle sound effects
+    toggleSFX() {
+        this.audioEnabled = !this.audioEnabled;
+        const btn = document.getElementById('sfxToggle');
+        
+        if (this.audioEnabled) {
+            btn.classList.remove('muted');
+            btn.textContent = '🔊';
+        } else {
+            btn.classList.add('muted');
+            btn.textContent = '🔇';
+        }
+    }
+    
+    // Generate deret aritmatika berdasarkan level
+    generateDeret() {
+        const config = this.levelConfig[this.level] || { 
+            beda: this.level + 1, 
+            startRange: [20, 50 + this.level * 5] 
+        };
+        
+        const beda = config.beda;
+        const [minStart, maxStart] = config.startRange;
+        const startNumber = Math.floor(Math.random() * (maxStart - minStart + 1)) + minStart;
+        
+        const deret = [];
+        let current = startNumber;
+        
+        for (let i = 0; i < this.totalSlots; i++) {
+            deret.push(current);
+            current += beda;
+        }
+        
+        return deret;
+    }
+    
+    // Generate posisi kosong secara acak
+    generateEmptyPositions() {
+        const positions = [];
+        const available = Array.from({length: this.totalSlots}, (_, i) => i);
+        
+        // Fisher-Yates shuffle
+        for (let i = available.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [available[i], available[j]] = [available[j], available[i]];
+        }
+        
+        return available.slice(0, this.emptySlots);
+    }
+    
+    // Setup game untuk level saat ini
+    setupLevel() {
+        this.filledAnswers = {};
+
+        if (this.extremeMode) {
+            // For extreme mode, create a long implicit sequence and pick a missing index
+            const config = this.levelConfig[this.level] || { beda: this.level + 1, startRange: [1, 10] };
+            const [minStart, maxStart] = config.startRange || [1, 10];
+            // Choose a start number but allow larger gaps via index
+            this.extremeStartNumber = Math.floor(Math.random() * (maxStart - minStart + 1)) + minStart;
+            // Pick missing index somewhere not at the edges so we can show neighbors
+            // Ensure missingIndex is at least 5 so we can show 4 preceding values
+            const minIdx = 5;
+            const maxIdx = this.bigTotalSlots;
+            this.missingIndex = Math.floor(Math.random() * (maxIdx - minIdx + 1)) + minIdx;
+            // Window of 5 where the empty (missingIndex) is positioned at the rightmost slot
+            this.windowIndexes = [this.missingIndex - 4, this.missingIndex - 3, this.missingIndex - 2, this.missingIndex - 1, this.missingIndex];
+            this.emptySlots = 1;
+
+            // Choose a target value for the missing index so displayed numbers aren't tiny.
+            // Pick a target in a reasonable visible range and compute start 'a1' accordingly.
+            const targetMin = 20 + (this.level - 1) * 5;
+            const targetMax = 60 + (this.level - 1) * 10;
+            const target = Math.floor(Math.random() * (targetMax - targetMin + 1)) + targetMin;
+            const bedaVal = config.beda;
+            // Compute starting value so that value at missingIndex == target
+            const computedA1 = target - (this.missingIndex - 1) * bedaVal;
+            this.extremeStartNumber = Math.max(1, computedA1);
+
+            console.log(`Extreme mode - start ${this.extremeStartNumber}, target ${target}, beda ${config.beda}, missingIndex ${this.missingIndex}`);
+        } else {
+            this.deret = this.generateDeret();
+            this.emptyPositions = this.generateEmptyPositions();
+            this.totalSlots = 10;
+            this.emptySlots = 3;
+            console.log(`Level ${this.level} - Deret: [${this.deret.join(', ')}]`);
+            console.log(`Posisi kosong: [${this.emptyPositions.join(', ')}]`);
+        }
+    }
+    
+    // Render slots ke DOM
+    renderSlots() {
+        const slotsDiv = document.getElementById("slots");
+        slotsDiv.innerHTML = '';
+
+        // Remove any existing extreme label
+        const existingLabel = document.getElementById('extremeLabel');
+        if (existingLabel) existingLabel.remove();
+
+        if (this.extremeMode) {
+            // In extreme mode render a window of 5 slots centered on missingIndex
+            const windowIndexes = this.windowIndexes; // array of indexes in the big sequence
+
+            // Add label above slots for the missing slot
+            const missingGlobalIndex = this.missingIndex;
+            const label = document.createElement('div');
+            label.id = 'extremeLabel';
+            label.style.color = 'white';
+            label.style.marginBottom = '8px';
+            label.style.fontWeight = '600';
+            label.innerText = `Angka ke - ${missingGlobalIndex}`;
+            slotsDiv.parentNode.insertBefore(label, slotsDiv);
+
+            windowIndexes.forEach((globalIdx, i) => {
+                const slot = document.createElement('div');
+                // compute the real (global) value for this index
+                const realValue = this.computeValueAt(globalIdx);
+
+                // For display purposes show a small local pattern (e.g., 1,4,7,10)
+                const config = this.levelConfig[this.level] || { beda: 2 };
+                const displayBeda = config.beda;
+                const displayStart = 1; // always show small pattern starting at 1
+                const displayValue = displayStart + i * displayBeda;
+
+                if (globalIdx === this.missingIndex) {
+                    slot.className = 'slot empty';
+                    slot.id = `slot-${globalIdx}`;
+                    // dataset.answer remains the real large value to validate drag-drop
+                    slot.dataset.answer = realValue;
+                    // show lock icon in the empty slot (visual)
+                    slot.innerText = '🔒';
+                    slot.addEventListener('dragover', this.dragOver.bind(this));
+                    slot.addEventListener('dragleave', this.dragLeave.bind(this));
+                    slot.addEventListener('drop', this.drop.bind(this));
+                } else {
+                    slot.className = 'slot fixed';
+                    // show the small pattern value as hint
+                    slot.innerText = displayValue;
+                    // still keep the real value available as data-real for debugging if needed
+                    slot.dataset.real = realValue;
+                }
+
+                slot.style.opacity = '0';
+                slot.style.transform = 'scale(0.8) translateY(20px)';
+                slotsDiv.appendChild(slot);
+            });
+        } else {
+            for (let i = 0; i < this.totalSlots; i++) {
+                const slot = document.createElement("div");
+
+                if (this.emptyPositions.includes(i)) {
+                    // Slot yang harus diisi
+                    slot.className = "slot empty";
+                    slot.id = `slot-${i}`;
+                    slot.dataset.answer = this.deret[i];
+                    slot.innerText = '?';
+                    slot.addEventListener("dragover", this.dragOver.bind(this));
+                    slot.addEventListener("dragleave", this.dragLeave.bind(this));
+                    slot.addEventListener("drop", this.drop.bind(this));
+                } else {
+                    // Slot fixed (sudah terisi)
+                    slot.className = "slot fixed";
+                    slot.innerText = this.deret[i];
+                }
+
+                slot.style.opacity = '0';
+                slot.style.transform = 'scale(0.8) translateY(20px)';
+                slotsDiv.appendChild(slot);
+            }
+        }
+    }
+    
+    // Render pilihan angka
+    renderChoices() {
+        const choicesDiv = document.getElementById("choices");
+        choicesDiv.innerHTML = '';
+        // Ambil angka yang harus diisi
+        let neededNumbers = [];
+
+        if (this.extremeMode) {
+            neededNumbers = [this.computeValueAt(this.missingIndex)];
+        } else {
+            neededNumbers = this.emptyPositions.map(pos => this.deret[pos]);
+        }
+        
+        // Tambahkan distraktor (angka salah tapi mirip)
+        const distractors = this.generateDistractors(neededNumbers);
+        
+        // Gabungkan dan acak
+        const allChoices = [...neededNumbers, ...distractors];
+        allChoices.sort(() => Math.random() - 0.5);
+        
+        // Pastikan semua angka yang dibutuhkan ada
+        const finalChoices = this.ensureAllNeededNumbers(neededNumbers, allChoices);
+        
+        finalChoices.forEach((num, index) => {
+            const box = document.createElement("div");
+            box.className = "box";
+            box.innerText = num;
+            box.draggable = true;
+            box.id = `box-${num}-${index}`;
+            box.addEventListener("dragstart", this.dragStart.bind(this));
+            box.style.opacity = '0';
+            box.style.transform = 'scale(0.8) translateY(20px)';
+            choicesDiv.appendChild(box);
+        });
+    }
+
+    // Compute arithmetic progression value at 1-based index n for current level
+    computeValueAt(n) {
+        const config = this.levelConfig[this.level] || { beda: this.level + 1 };
+        const beda = config.beda;
+        // If we have a stored startNumber for big sequences
+        const a1 = this.extremeStartNumber || this.deret[0];
+        return a1 + (n - 1) * beda;
+    }
+    
+    // Generate distraktor yang mirip dengan jawaban
+    generateDistractors(neededNumbers) {
+        const distractors = [];
+        const beda = this.levelConfig[this.level]?.beda || (this.level + 1);
+        
+        neededNumbers.forEach(num => {
+            // Tambahkan angka yang mirip (±beda, ±1, ±2)
+            [-beda, -beda+1, -1, 1, beda-1, beda].forEach(offset => {
+                const distractor = num + offset;
+                // In extreme mode `this.deret` may not contain the full big sequence,
+                // so only check neededNumbers and positivity when extremeMode is on.
+                const notInDeret = this.extremeMode ? true : !this.deret.includes(distractor);
+                if (distractor > 0 && !neededNumbers.includes(distractor) && notInDeret) {
+                    distractors.push(distractor);
+                }
+            });
+        });
+        
+        // Hapus duplikat dan batasi jumlah
+        return [...new Set(distractors)].slice(0, 6);
+    }
+
+    // Toggle extreme mode on/off
+    toggleExtremeMode() {
+        this.extremeMode = !this.extremeMode;
+        const btn = document.getElementById('extremeToggle');
+        if (this.extremeMode) {
+            btn.classList.add('muted');
+            btn.textContent = '⚡';
+        } else {
+            btn.classList.remove('muted');
+            btn.textContent = '⚡';
+        }
+        this.setupLevel();
+        this.render();
+    }
+    
+    // Pastikan semua angka yang dibutuhkan ada di pilihan
+    ensureAllNeededNumbers(neededNumbers, allChoices) {
+        const missing = neededNumbers.filter(num => !allChoices.includes(num));
+        return [...allChoices, ...missing];
+    }
+    
+    // Drag & Drop Methods
+    dragStart(e) {
+        this.dragged = e.target;
+        e.target.style.opacity = '0.5';
+        e.target.style.transform = 'scale(0.9)';
+        this.playAudio('dragDrop');
+    }
+    
+    dragOver(e) {
+        e.preventDefault();
+        e.target.classList.add('drag-over');
+    }
+    
+    dragLeave(e) {
+        e.target.classList.remove('drag-over');
+    }
+    
+    drop(e) {
+        const slot = e.target;
+        slot.classList.remove('drag-over');
+        
+        const nilai = parseInt(this.dragged.innerText);
+        const kunci = parseInt(slot.dataset.answer);
+        
+        // Validasi jawaban
+        if (nilai !== kunci) {
+            this.handleWrongAnswer(slot);
+            return;
+        }
+        
+        // Jawaban benar
+        this.handleCorrectAnswer(slot, nilai);
+    }
+    
+    // Handle jawaban salah
+    handleWrongAnswer(slot) {
+        this.nyawa--;
+        this.updateUI();
+        this.playAudio('wrong');
+        
+        // Animasi nyawa berkurang
+        anime({
+            targets: '.heart',
+            scale: [1, 1.3, 1],
+            duration: 300,
+            easing: 'easeInOutQuad'
+        });
+        
+        // Animasi slot salah
+        anime({
+            targets: slot,
+            scale: [1, 1.1, 1],
+            backgroundColor: ['rgba(255,255,255,0.2)', 'rgba(255,107,107,0.5)', 'rgba(255,255,255,0.2)'],
+            duration: 600,
+            easing: 'easeInOutQuad'
+        });
+        
+        this.showCustomAlert({
+            title: "Salah! ❌",
+            text: `Nyawa berkurang! Sisa ${this.nyawa} nyawa`,
+            icon: "error",
+            confirmButtonColor: '#ff6b6b'
+        });
+        
+        if (this.nyawa === 0) {
+            this.gameOver();
+        }
+    }
+    
+    // Handle jawaban benar
+    handleCorrectAnswer(slot, nilai) {
+        slot.innerText = nilai;
+        slot.classList.remove('empty');
+        slot.classList.add('correct');
+        this.playAudio('correct');
+        
+        // Animasi box menghilang
+        anime({
+            targets: this.dragged,
+            scale: [1, 0],
+            opacity: [1, 0],
+            rotate: '1turn',
+            duration: 500,
+            easing: 'easeInBack',
+            complete: () => {
+                this.dragged.remove();
+            }
+        });
+        
+        // Catat jawaban yang benar
+        this.filledAnswers[slot.id] = nilai;
+        this.updateProgress();
+        
+        // Cek menang
+        if (Object.keys(this.filledAnswers).length === this.emptySlots) {
+            this.levelComplete();
+        }
+    }
+    
+    // Custom SweetAlert with theme
+    showCustomAlert(options) {
+        const defaultOptions = {
+            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+            backdrop: 'rgba(0,0,0,0.5)',
+            color: 'white',
+            confirmButtonText: 'OK',
+            customClass: {
+                popup: 'custom-swal-popup',
+                title: 'custom-swal-title',
+                htmlContainer: 'custom-swal-text'
+            }
+        };
+        
+        // Return the Swal promise so callers can chain .then() and react to the user's choice
+        return Swal.fire({...defaultOptions, ...options});
+    }
+    
+    // Update progress bar
+    updateProgress() {
+        const progress = (Object.keys(this.filledAnswers).length / this.emptySlots) * 100;
+        document.getElementById('progressFill').style.width = progress + '%';
+    }
+    
+    // Level selesai
+    levelComplete() {
+        this.playAudio('levelComplete');
+        
+        // Animasi sukses
+        const successDiv = document.createElement('div');
+        successDiv.className = 'success-animation';
+        successDiv.innerHTML = '🎉';
+        document.body.appendChild(successDiv);
+        
+        anime({
+            targets: successDiv,
+            scale: [0, 1.5, 1],
+            rotate: [0, 360],
+            duration: 1000,
+            easing: 'easeOutElastic(1, .8)',
+            complete: () => {
+                setTimeout(() => {
+                    successDiv.remove();
+                }, 500);
+            }
+        });
+        
+        this.showCustomAlert({
+            title: "Hebat! 🎉",
+            text: `Level ${this.level} selesai! Lanjut ke level berikutnya?`,
+            icon: "success",
+            confirmButtonColor: '#38ef7d',
+            confirmButtonText: `Lanjut Level ${this.level + 1}`
+        }).then((result) => {
+            if (result.isConfirmed) {
+                this.nextLevel();
+            }
+        });
+    }
+    
+    // Level berikutnya
+    nextLevel() {
+        this.level++;
+        this.nyawa = Math.min(this.nyawa + 1, 5); // Bonus nyawa, max 5
+        this.setupLevel();
+        this.render();
+    }
+    
+    // Game over
+    gameOver() {
+        this.playAudio('gameOver');
+        this.audioFiles.bgm.pause();
+        
+        this.showCustomAlert({
+            title: "Game Over! 💀",
+            text: `Kamu mencapai level ${this.level}. Coba lagi?`,
+            icon: "error",
+            confirmButtonColor: '#ff6b6b'
+        }).then(() => {
+            // Reset game
+            this.level = 1;
+            this.nyawa = 5;
+            this.setupLevel();
+            this.render();
+            if (this.bgmEnabled) {
+                this.playAudio('bgm');
+            }
+        });
+    }
+    
+    // Update UI elements
+    updateUI() {
+        document.getElementById('currentLevel').textContent = this.level;
+        
+        let hearts = "";
+        for (let i = 1; i <= 5; i++) {
+            hearts += `<span class="heart">${i <= this.nyawa ? "❤️" : "🖤"}</span>`;
+        }
+        document.getElementById("nyawa").innerHTML = hearts;
+    }
+    
+    // Create floating particles
+    createParticles() {
+        const particlesContainer = document.getElementById('particles');
+        particlesContainer.innerHTML = '';
+        
+        for (let i = 0; i < 15; i++) {
+            const particle = document.createElement('div');
+            particle.className = 'particle';
+            particle.style.left = Math.random() * 100 + '%';
+            particle.style.top = Math.random() * 100 + '%';
+            particle.style.width = (Math.random() * 10 + 5) + 'px';
+            particle.style.height = particle.style.width;
+            particle.style.animationDelay = Math.random() * 6 + 's';
+            particle.style.animationDuration = (Math.random() * 3 + 4) + 's';
+            particlesContainer.appendChild(particle);
+        }
+    }
+    
+    // Initialize animations
+    initializeAnimations() {
+        // Animate title
+        anime({
+            targets: '.game-title',
+            opacity: [0, 1],
+            translateY: [-20, 0],
+            duration: 1000,
+            easing: 'easeOutElastic(1, .8)',
+            delay: 200
+        });
+        
+        // Animate subtitle
+        anime({
+            targets: '.subtitle',
+            opacity: [0, 1],
+            translateY: [-10, 0],
+            duration: 800,
+            easing: 'easeOutQuad',
+            delay: 500
+        });
+        
+        // Animate info bar
+        anime({
+            targets: '.info-bar',
+            opacity: [0, 1],
+            translateY: [20, 0],
+            duration: 800,
+            easing: 'easeOutQuad',
+            delay: 700
+        });
+        
+        // Animate hint section
+        anime({
+            targets: '.hint-section',
+            opacity: [0, 1],
+            translateY: [20, 0],
+            duration: 800,
+            easing: 'easeOutQuad',
+            delay: 900
+        });
+    }
+    
+    // Render game
+    render() {
+        this.renderSlots();
+        this.renderChoices();
+        this.updateUI();
+        
+        // Animate slots appearance
+        setTimeout(() => {
+            anime({
+                targets: '.slot',
+                opacity: [0, 1],
+                scale: [0.8, 1],
+                translateY: [20, 0],
+                duration: 600,
+                easing: 'easeOutElastic(1, .8)',
+                delay: anime.stagger(100, {start: 1200})
+            });
+        }, 100);
+        
+        // Animate choices appearance
+        setTimeout(() => {
+            anime({
+                targets: '.box',
+                opacity: [0, 1],
+                scale: [0.8, 1],
+                translateY: [20, 0],
+                duration: 600,
+                easing: 'easeOutElastic(1, .8)',
+                delay: anime.stagger(100, {start: 1800})
+            });
+        }, 100);
+    }
+    
+    // Initialize game
+    init() {
+        this.setupLevel();
+        this.createParticles();
+        this.initializeAnimations();
+        this.render();
+        
+        // Setup audio controls
+        document.getElementById('bgmToggle').addEventListener('click', () => this.toggleBGM());
+        document.getElementById('sfxToggle').addEventListener('click', () => this.toggleSFX());
+        document.getElementById('extremeToggle').addEventListener('click', () => this.toggleExtremeMode());
+        
+        // Start BGM with autoplay fallback (muted) and unlock on interaction
+        this.setupAutoplayBGM();
+        
+        // Add drag end event listener
+        document.addEventListener("dragend", e => {
+            if (this.dragged) {
+                this.dragged.style.opacity = '1';
+                this.dragged.style.transform = 'scale(1)';
+            }
+        });
+        
+        // Interactive background effect
+        document.addEventListener('mousemove', (e) => {
+            const particles = document.querySelectorAll('.particle');
+            particles.forEach((particle, index) => {
+                const speed = (index + 1) * 0.0001;
+                const x = (e.clientX * speed) % window.innerWidth;
+                const y = (e.clientY * speed) % window.innerHeight;
+                particle.style.transform = `translate(${x}px, ${y}px)`;
+            });
+        });
+    }
+}
+
+// Initialize game when DOM is loaded
+document.addEventListener('DOMContentLoaded', () => {
+    new ArithmeticSequenceGame();
+});
+</script>
+
+</body>
+</html>

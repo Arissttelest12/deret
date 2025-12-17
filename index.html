@@ -2,6 +2,7 @@
 <html lang="id">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Game Deret Aritmatika - Enhanced Audio</title>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
@@ -346,6 +347,28 @@
     .swal2-error-line-tip,
     .swal2-error-line-long {
         background-color: #ff6b6b !important;
+    }
+
+    /* Responsive styles for mobile */
+    @media (max-width: 800px) {
+        .game-container { max-width: 100%; padding: 12px; }
+        .game-title { font-size: 24px; }
+        .subtitle { font-size: 14px; }
+        .info-bar { flex-direction: column; gap: 10px; padding: 12px; }
+        .hint-section { font-size: 14px; }
+        .container { padding: 18px; gap: 10px; }
+        .box, .slot { width: 64px; height: 64px; font-size: 20px; }
+        .audio-btn { width: 44px; height: 44px; }
+        .progress-bar { height: 6px; }
+    }
+
+    @media (max-width: 420px) {
+        .game-title { font-size: 20px; }
+        .box, .slot { width: 56px; height: 56px; font-size: 18px; }
+        .audio-btn { width: 40px; height: 40px; }
+        .hint-section { padding: 10px; }
+        .container { padding: 12px; }
+        .floating-particles { display: none; }
     }
 </style>
 </head>
@@ -734,10 +757,66 @@ class ArithmeticSequenceGame {
             box.draggable = true;
             box.id = `box-${num}-${index}`;
             box.addEventListener("dragstart", this.dragStart.bind(this));
+            // Touch fallback for mobile
+            box.addEventListener('touchstart', this.touchStart.bind(this), {passive:false});
+            box.addEventListener('touchmove', this.touchMove.bind(this), {passive:false});
+            box.addEventListener('touchend', this.touchEnd.bind(this), {passive:false});
             box.style.opacity = '0';
             box.style.transform = 'scale(0.8) translateY(20px)';
             choicesDiv.appendChild(box);
         });
+    }
+
+    // Touch drag helpers for mobile (simple clone-follow implementation)
+    touchStart(e) {
+        e.preventDefault();
+        const touch = e.touches[0];
+        this.touchDragging = e.currentTarget;
+        this.playAudio('dragDrop');
+
+        // create visual clone
+        this.touchClone = this.touchDragging.cloneNode(true);
+        this.touchClone.style.position = 'fixed';
+        this.touchClone.style.left = (touch.clientX - 30) + 'px';
+        this.touchClone.style.top = (touch.clientY - 30) + 'px';
+        this.touchClone.style.pointerEvents = 'none';
+        this.touchClone.style.zIndex = 2000;
+        document.body.appendChild(this.touchClone);
+    }
+
+    touchMove(e) {
+        e.preventDefault();
+        if (!this.touchClone) return;
+        const touch = e.touches[0];
+        this.touchClone.style.left = (touch.clientX - 30) + 'px';
+        this.touchClone.style.top = (touch.clientY - 30) + 'px';
+
+        // highlight slot under touch
+        const el = document.elementFromPoint(touch.clientX, touch.clientY);
+        document.querySelectorAll('.slot').forEach(s => s.classList.remove('drag-over'));
+        if (el && el.classList && el.classList.contains('slot')) el.classList.add('drag-over');
+    }
+
+    touchEnd(e) {
+        e.preventDefault();
+        if (!this.touchClone) return;
+        const touch = e.changedTouches[0];
+        const el = document.elementFromPoint(touch.clientX, touch.clientY);
+
+        if (el && el.classList && el.classList.contains('slot')) {
+            const nilai = parseInt(this.touchDragging.innerText);
+            const kunci = parseInt(el.dataset.answer);
+            if (nilai === kunci) {
+                this.handleCorrectAnswer(el, nilai);
+            } else {
+                this.handleWrongAnswer(el);
+            }
+        }
+
+        document.querySelectorAll('.slot').forEach(s => s.classList.remove('drag-over'));
+        try { this.touchClone.remove(); } catch (e) {}
+        this.touchClone = null;
+        this.touchDragging = null;
     }
 
     // Compute arithmetic progression value at 1-based index n for current level

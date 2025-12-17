@@ -640,6 +640,9 @@ class ArithmeticSequenceGame {
             console.log(`Level ${this.level} - Deret: [${this.deret.join(', ')}]`);
             console.log(`Posisi kosong: [${this.emptyPositions.join(', ')}]`);
         }
+
+        // Persist progress after setting up level
+        this.saveProgress();
     }
     
     // Render slots ke DOM
@@ -972,6 +975,8 @@ class ArithmeticSequenceGame {
         if (this.nyawa === 0) {
             this.gameOver();
         }
+        // Save progress after wrong answer (so refresh keeps latest nyawa/level)
+        this.saveProgress();
     }
     
     // Handle jawaban benar
@@ -1020,6 +1025,8 @@ class ArithmeticSequenceGame {
         if (Object.keys(this.filledAnswers).length === this.emptySlots) {
             this.levelComplete();
         }
+        // Save progress after correct answer
+        this.saveProgress();
     }
     
     // Custom SweetAlert with theme
@@ -1163,6 +1170,34 @@ class ArithmeticSequenceGame {
             localStorage.removeItem('deret_resume');
         } catch (e) {}
     }
+
+    // Save/Load resume progress so refresh resumes last level
+    saveProgress() {
+        try {
+            const payload = {
+                level: this.level,
+                nyawa: this.nyawa,
+                extremeMode: !!this.extremeMode,
+                timestamp: Date.now()
+            };
+            localStorage.setItem('deret_resume', JSON.stringify(payload));
+        } catch (e) {}
+    }
+
+    loadProgress() {
+        try {
+            const raw = localStorage.getItem('deret_resume');
+            if (!raw) return false;
+            const obj = JSON.parse(raw);
+            if (obj && obj.level) {
+                this.level = obj.level;
+                this.nyawa = (typeof obj.nyawa === 'number') ? obj.nyawa : this.nyawa;
+                this.extremeMode = !!obj.extremeMode;
+                return true;
+            }
+        } catch (e) {}
+        return false;
+    }
     
     // Create floating particles
     createParticles() {
@@ -1260,6 +1295,8 @@ class ArithmeticSequenceGame {
     
     // Initialize game
     init() {
+        // Try to resume previous progress (level & nyawa)
+        this.loadProgress();
         this.setupLevel();
         this.createParticles();
         this.initializeAnimations();

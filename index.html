@@ -157,6 +157,9 @@
         transition:all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         position: relative;
         overflow: hidden;
+        touch-action: none;
+        -webkit-user-drag: none;
+        will-change: transform;
     }
     
     .box { 
@@ -774,13 +777,15 @@ class ArithmeticSequenceGame {
         this.touchDragging = e.currentTarget;
         this.playAudio('dragDrop');
 
-        // create visual clone
+        // create visual clone and use transform for smoother rendering
         this.touchClone = this.touchDragging.cloneNode(true);
         this.touchClone.style.position = 'fixed';
-        this.touchClone.style.left = (touch.clientX - 30) + 'px';
-        this.touchClone.style.top = (touch.clientY - 30) + 'px';
+        this.touchClone.style.left = '0px';
+        this.touchClone.style.top = '0px';
         this.touchClone.style.pointerEvents = 'none';
         this.touchClone.style.zIndex = 2000;
+        this.touchClone.style.transform = `translate3d(${touch.clientX - 30}px, ${touch.clientY - 30}px, 0)`;
+        this.touchClone.style.transition = 'transform 0.08s linear';
         document.body.appendChild(this.touchClone);
     }
 
@@ -788,8 +793,7 @@ class ArithmeticSequenceGame {
         e.preventDefault();
         if (!this.touchClone) return;
         const touch = e.touches[0];
-        this.touchClone.style.left = (touch.clientX - 30) + 'px';
-        this.touchClone.style.top = (touch.clientY - 30) + 'px';
+        this.touchClone.style.transform = `translate3d(${touch.clientX - 30}px, ${touch.clientY - 30}px, 0)`;
 
         // highlight slot under touch
         const el = document.elementFromPoint(touch.clientX, touch.clientY);
@@ -817,6 +821,9 @@ class ArithmeticSequenceGame {
         try { this.touchClone.remove(); } catch (e) {}
         this.touchClone = null;
         this.touchDragging = null;
+
+        // also clear any desktop dragged reference to be safe
+        this.dragged = null;
     }
 
     // Compute arithmetic progression value at 1-based index n for current level
@@ -946,24 +953,42 @@ class ArithmeticSequenceGame {
         slot.classList.remove('empty');
         slot.classList.add('correct');
         this.playAudio('correct');
-        
-        // Animasi box menghilang
-        anime({
-            targets: this.dragged,
-            scale: [1, 0],
-            opacity: [1, 0],
-            rotate: '1turn',
-            duration: 500,
-            easing: 'easeInBack',
-            complete: () => {
-                this.dragged.remove();
-            }
-        });
-        
+
+        // Determine dragged element (desktop drag uses this.dragged, mobile uses this.touchDragging)
+        const draggedEl = this.dragged || this.touchDragging;
+
+        // Remove visual clone if any (mobile)
+        if (this.touchClone) {
+            try { this.touchClone.remove(); } catch (e) {}
+            this.touchClone = null;
+        }
+
+        // Animate and remove dragged element if present
+        if (draggedEl && !this.touchDragging) {
+            anime({
+                targets: draggedEl,
+                scale: [1, 0],
+                opacity: [1, 0],
+                rotate: '1turn',
+                duration: 350,
+                easing: 'easeInBack',
+                complete: () => {
+                    try { draggedEl.remove(); } catch (e) {}
+                }
+            });
+        } else if (draggedEl && this.touchDragging) {
+            // On touch just remove without heavy animation for responsiveness
+            try { draggedEl.remove(); } catch (e) {}
+        }
+
+        // Clear drag state
+        this.dragged = null;
+        this.touchDragging = null;
+
         // Catat jawaban yang benar
         this.filledAnswers[slot.id] = nilai;
         this.updateProgress();
-        
+
         // Cek menang
         if (Object.keys(this.filledAnswers).length === this.emptySlots) {
             this.levelComplete();
